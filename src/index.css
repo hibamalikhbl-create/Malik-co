@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --brand-green: #0F4221;
+    --brand-green-dark: #0A2E17;
+    --brand-gold: #D99B0C;
+    --brand-gold-bright: #F4B41A;
+    --canvas-bg: #F8F7F4;
+    --surface-border: #E0E3DC;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    background-color: var(--canvas-bg);
+    color: #151C17;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono-tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Subtle architectural drafting grid */
+.arch-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(15, 66, 33, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 66, 33, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.arch-isometric-grid {
+  background-image:
+    linear-gradient(30deg, rgba(15, 66, 33, 0.035) 1px, transparent 1px),
+    linear-gradient(150deg, rgba(15, 66, 33, 0.035) 1px, transparent 1px);
+  background-size: 52px 30px;
+}
+
+/* Pure 2D CSS 3D-Illusion Depth Surfaces */
+.iso-stage {
+  perspective: 1400px;
+}
+
+.iso-plane {
+  transform-style: preserve-3d;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Refined architectural card elevation (subtle depth without harsh comic borders) */
+.extrude-card {
+  position: relative;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    3px 3px 0 #D8DDD3,
+    0 12px 28px -16px rgba(15, 66, 33, 0.14);
+}
+
+.extrude-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    5px 5px 0 #C8D0C2,
+    0 20px 36px -16px rgba(15, 66, 33, 0.18);
+}
+
+.extrude-btn {
+  box-shadow: 3px 3px 0 #082412;
+  transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease;
+}
+
+.extrude-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #082412;
+}
+
+.extrude-btn:active {
+  transform: translate(1.5px, 1.5px);
+  box-shadow: 1.5px 1.5px 0 #082412;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iso-plane,
+  .extrude-card,
+  .extrude-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}
