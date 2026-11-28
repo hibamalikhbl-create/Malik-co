@@ -8,11 +8,8 @@ import {
   RotateCcw,
   RotateCw,
 } from 'lucide-react';
-import { STRUCTURAL_LAYERS } from '../data/malikData';
 
 interface IsometricHeroDioramaProps {
-  selectedLayerId: string;
-  onSelectLayer: (id: string) => void;
   showControls?: boolean;
 }
 
@@ -52,8 +49,6 @@ function segmentProgress(globalT: number, start: number, end: number): number {
 }
 
 export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
-  selectedLayerId,
-  onSelectLayer,
   showControls = true,
 }) => {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -168,11 +163,6 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
   const replayBuild = () => {
     setBuildKey((k) => k + 1);
   };
-
-  const activeLayer =
-    STRUCTURAL_LAYERS.find((l) => l.id === selectedLayerId) || STRUCTURAL_LAYERS[0];
-
-  const isLayerSelected = (id: string) => selectedLayerId === id;
 
   // Color palette switches cleanly between Solid Architectural Render and CAD Blueprint
   const c = useMemo(
@@ -501,8 +491,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
     // =========================================================================
     const tFoundation = segmentProgress(buildProgress, 0.0, 0.18);
     const zDropFoundation = (1 - tFoundation) * 28;
-    const selF = isLayerSelected('foundation');
-    const strokeF = selF ? c.strokeAccent : c.stroke;
+    const strokeF = c.stroke;
 
     [
       { x: -75, y: -45 },
@@ -539,7 +528,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
       rightFill: c.earthSide,
       leftFill: c.earthSide,
       stroke: strokeF,
-      strokeWidth: selF ? 2.1 : 1.4,
+      strokeWidth: 1.4,
       opacity: tFoundation,
       depthBias: -240,
     });
@@ -549,8 +538,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
     // =========================================================================
     const tCulvert = segmentProgress(buildProgress, 0.16, 0.34);
     const zDropCulvert = (1 - tCulvert) * 32;
-    const selC = isLayerSelected('culvert');
-    const strokeC = selC ? c.strokeAccent : c.stroke;
+    const strokeC = c.stroke;
 
     // Concrete trench cradle slab (positioned cleanly beside podium pad)
     addBox({
@@ -566,7 +554,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
       frontFill: c.concreteFront,
       rightFill: c.concreteSide,
       stroke: strokeC,
-      strokeWidth: selC ? 1.8 : 1.2,
+      strokeWidth: 1.2,
       opacity: tCulvert,
       depthBias: -90,
     });
@@ -592,8 +580,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
     const tPodium = segmentProgress(buildProgress, 0.32, 0.46);
     const tAnnex = segmentProgress(buildProgress, 0.38, 0.52);
     const tExcavator = segmentProgress(buildProgress, 0.42, 0.56);
-    const selP = isLayerSelected('podium');
-    const strokeP = selP ? c.strokeAccent : c.stroke;
+    const strokeP = c.stroke;
 
     // Podium Concrete Pad
     addBox({
@@ -611,7 +598,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
       rightFill: c.concreteSide,
       leftFill: c.concreteSide,
       stroke: strokeP,
-      strokeWidth: selP ? 2 : 1.35,
+      strokeWidth: 1.35,
       opacity: tPodium,
       depthBias: -140,
     });
@@ -804,8 +791,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
     // =========================================================================
     // PHASE 4 (0.50 -> 1.00): LAYER 04 — FAST BRICK-BY-BRICK HIGH-RISE TOWER
     // =========================================================================
-    const selT = isLayerSelected('superstructure');
-    const strokeT = selT ? c.strokeAccent : c.stroke;
+    const strokeT = c.stroke;
     const floors = 6;
     const floorHeight = 16;
     const baseTowerZ = 22 + zExpTower;
@@ -850,7 +836,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
           rightFill: quad.alt ? c.brickAltSide : c.towerSide,
           leftFill: quad.alt ? c.towerSide : c.brickAltSide,
           stroke: strokeT,
-          strokeWidth: selT ? 1.5 : 1.0,
+          strokeWidth: 1.0,
           opacity: tb,
           depthBias: 40 + fl * 4,
         });
@@ -1013,7 +999,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
     // Depth sort back-to-front (painter's algorithm for flawless 360° pure-2D occlusion)
     polys.sort((a, b) => a.depth - b.depth);
     return polys;
-  }, [yawDeg, pointer, exploded, blueprintMode, buildProgress, selectedLayerId, c]);
+  }, [yawDeg, pointer, exploded, blueprintMode, buildProgress, c]);
 
   const normalizedAngle = Math.round(((yawDeg % 360) + 360) % 360)
     .toString()
@@ -1027,7 +1013,7 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
           <div className="flex items-center gap-2 text-xs font-medium text-[#344238]">
             <Compass className="w-4 h-4 text-[#0F4221]" aria-hidden="true" />
             <span className="font-mono-tabular uppercase tracking-wider text-[11px] text-[#0F4221] font-semibold">
-              2D Isometric Model · {activeLayer.elevation} · {normalizedAngle}°
+              2D Isometric Model · {normalizedAngle}°
             </span>
           </div>
 
@@ -1160,11 +1146,6 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
               strokeWidth={poly.strokeWidth}
               strokeLinejoin="round"
               opacity={poly.opacity}
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectLayer(poly.layerId);
-              }}
-              className="cursor-pointer"
             />
           ))}
         </svg>
@@ -1198,33 +1179,6 @@ export const IsometricHeroDiorama: React.FC<IsometricHeroDioramaProps> = ({
             </span>
           </div>
         </div>
-      </div>
-
-      {/* Interactive Layer Selector Strip below viewport */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {STRUCTURAL_LAYERS.slice()
-          .reverse()
-          .map((layer) => {
-            const active = layer.id === selectedLayerId;
-            return (
-              <button
-                key={layer.id}
-                type="button"
-                onClick={() => onSelectLayer(layer.id)}
-                className={`text-left px-3 py-2.5 rounded-xl border transition-all cursor-pointer ${
-                  active
-                    ? 'bg-[#0F4221] text-white border-[#0F4221] shadow-sm'
-                    : 'bg-white text-[#1C2720] border-[#DFE2DC] hover:border-[#0F4221]/50'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 text-[11px] font-mono-tabular opacity-80">
-                  <span>{layer.index}</span>
-                  <span className="truncate">{layer.elevation}</span>
-                </div>
-                <div className="mt-1 text-xs font-semibold truncate">{layer.name}</div>
-              </button>
-            );
-          })}
       </div>
     </div>
   );

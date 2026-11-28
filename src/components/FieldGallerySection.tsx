@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react';
-import { FIELD_GALLERY, FieldPhotoItem } from '../data/malikData';
+import { ChevronLeft, ChevronRight, Expand, Film, X } from 'lucide-react';
+import { FIELD_GALLERY, FIELD_VIDEOS, FieldPhotoItem } from '../data/malikData';
 
 export const FieldGallerySection: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -37,56 +37,104 @@ export const FieldGallerySection: React.FC = () => {
               className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
               style={{ textWrap: 'balance' }}
             >
-              Active Site Supervision, Pipelines &amp; Pumping Stations
+              Active Site Supervision, Interiors &amp; Structural Execution
             </h2>
             <p className="mt-3 text-sm sm:text-base text-[#344238] leading-relaxed">
-              Unfiltered photographs from our active municipal drainage, flyover corridor, earthworks,
-              and pumping station sites across Pakistan.
+              Field videos and photographs from our structural slabs, interior fit-outs, site
+              surveying, deep foundations, bridges, and engineering inspections across Pakistan.
             </p>
           </div>
-          <p className="text-xs text-[#5A675D]">Click any photograph to view full size</p>
+          <p className="text-xs text-[#5A675D]">
+            Hover for project details · Click any frame to enlarge
+          </p>
         </div>
 
-        {/* Editorial Photo Grid: Featured wide shots + balanced field cards */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* Compact Lightweight On-Site Video Strip (lazy loaded via poster + preload="none") */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {FIELD_VIDEOS.map((video) => (
+            <div
+              key={video.id}
+              className="rounded-xl border border-[#DCE0D7] bg-white p-3 flex flex-col"
+            >
+              <div className="relative h-48 sm:h-52 w-full rounded-lg overflow-hidden border border-[#D4D9D0] bg-[#111914] flex items-center justify-center">
+                <video
+                  src={video.src}
+                  poster={video.poster}
+                  controls
+                  playsInline
+                  preload="none"
+                  aria-label={video.title}
+                  className="w-full h-full object-contain block"
+                />
+              </div>
+              <div className="pt-3 px-1">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#0F4221]">
+                  <Film className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">{video.tag}</span>
+                </div>
+                <h3 className="mt-1 text-sm font-bold text-[#111914] leading-snug">
+                  {video.title}
+                </h3>
+                <p className="mt-1 text-xs text-[#4B584E] leading-relaxed line-clamp-2">
+                  {video.caption}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Responsive Small-Framed Photo Grid with Hover Detail Reveal */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           {FIELD_GALLERY.map((photo, idx) => {
-            const isFeatured = idx === 0 || idx === 1;
             return (
               <button
                 key={photo.id}
                 type="button"
                 onClick={() => setSelectedIndex(idx)}
-                className={`group text-left rounded-xl border border-[#DCE0D7] bg-white overflow-hidden transition-shadow hover:shadow-lg cursor-pointer flex flex-col ${
-                  isFeatured && idx === 0 ? 'md:col-span-2 lg:col-span-2' : ''
-                }`}
+                className="group relative text-left rounded-xl border border-[#DCE0D7] bg-[#111914] overflow-hidden h-40 sm:h-44 transition-all duration-300 hover:shadow-lg hover:border-[#0F4221] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F4221] cursor-pointer"
               >
-                <div
-                  className={`relative w-full overflow-hidden bg-[#E5E8E0] ${
-                    isFeatured && idx === 0 ? 'h-72 sm:h-88' : 'h-64 sm:h-72'
+                <img
+                  src={photo.src}
+                  alt={`${photo.title} — ${photo.location}`}
+                  loading="lazy"
+                  decoding="async"
+                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                    photo.focus === 'top'
+                      ? 'object-top'
+                      : photo.focus === 'upper'
+                      ? 'object-[center_20%]'
+                      : 'object-center'
                   }`}
+                />
+
+                {/* Idle bottom title bar (subtle, hides smoothly on hover) */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2.5 pb-2 pt-7 transition-opacity duration-200 group-hover:opacity-0 group-focus-visible:opacity-0"
                 >
-                  <img
-                    src={photo.src}
-                    alt={photo.title}
-                    referrerPolicy="no-referrer"
-                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] ${
-                      photo.focus === 'top' ? 'object-top' : 'object-center'
-                    }`}
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent opacity-80"
-                  />
-                  <span className="absolute top-3 right-3 rounded-lg bg-black/55 p-2 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Expand className="w-4 h-4" />
-                  </span>
-                  <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <div className="text-[11px] font-medium text-[#FDE68A]">{photo.location}</div>
-                    <div className="mt-0.5 text-base font-bold leading-snug">{photo.title}</div>
+                  <div className="text-[11px] font-semibold text-white leading-tight line-clamp-1">
+                    {photo.title}
                   </div>
                 </div>
-                <div className="p-4 text-xs sm:text-sm text-[#344238] leading-relaxed">
-                  {photo.caption}
+
+                {/* Hover / Focus Project Details Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0A160E]/95 via-[#0A160E]/75 to-[#0A160E]/30 p-2.5 flex flex-col justify-between opacity-0 translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 group-focus-visible:opacity-100 group-focus-visible:translate-y-0">
+                  <div className="flex justify-end">
+                    <span className="rounded-md bg-white/15 p-1 text-white">
+                      <Expand className="w-3 h-3" />
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold text-[#F4B41A] truncate">
+                      {photo.location}
+                    </div>
+                    <div className="mt-0.5 text-xs font-bold text-white leading-snug line-clamp-2">
+                      {photo.title}
+                    </div>
+                    <p className="mt-1 text-[10px] text-[#D1E7D8] leading-snug line-clamp-2">
+                      {photo.caption}
+                    </p>
+                  </div>
                 </div>
               </button>
             );
@@ -126,7 +174,6 @@ export const FieldGallerySection: React.FC = () => {
               <img
                 src={activePhoto.src}
                 alt={activePhoto.title}
-                referrerPolicy="no-referrer"
                 className="max-h-[70vh] w-auto max-w-full object-contain"
               />
               <button

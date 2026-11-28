@@ -1,0 +1,16 @@
+{
+  "name": "M/S Malik & Company — Civil Engineering & Construction",
+  "short_name": "Malik & Co.",
+  "description": "PEC Category CB one-window engineering, design and construction firm in Karachi.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F7F4",
+  "theme_color": "#0F4221",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "836x842",
+      "type": "image/png"
+    }
+  ]
+}

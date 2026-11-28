@@ -1,39 +1,36 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
   Building2,
   CheckCircle2,
+  ClipboardList,
+  Handshake,
+  Mail,
+  MapPin,
   Menu,
+  Mic,
   Phone,
-  ShieldCheck,
+  Wrench,
   X,
 } from 'lucide-react';
 import {
   ALL_SERVICES,
-  CAPABILITIES,
-  LANDMARK_PROJECTS,
-  LandmarkProject,
-  PAKISTAN_CITIES,
+  COMPANY_INFO,
   PRACTICE_DISCIPLINES,
-  ProjectCategory,
-  STRUCTURAL_LAYERS,
-  TESTIMONIALS,
+  SITE_CITY_OPTIONS,
+  SPECIALIZATIONS,
 } from './data/malikData';
 import { IsometricHeroDiorama } from './components/IsometricHeroDiorama';
-import { IsometricCapabilityArt } from './components/IsometricCapabilityArt';
 import { ServiceIsoIcon } from './components/ServiceIsoIcons';
-import {
-  SkylineMotifType,
-  UrbanCardGraphic,
-  UrbanSkylinePanorama,
-} from './components/UrbanSkylineGraphics';
-import { CostEstimator, EstimatorTransferPayload } from './components/CostEstimator';
-import { ProjectModal } from './components/ProjectModal';
+import { UrbanSkylinePanorama } from './components/UrbanSkylineGraphics';
 import { HeritageDepthDeck } from './components/HeritageDepthDeck';
 import { FieldGallerySection } from './components/FieldGallerySection';
+import { InteriorDesignShowcase } from './components/InteriorDesignShowcase';
+import { ElevenLabsVoiceDesk } from './components/ElevenLabsVoiceDesk';
 
 const LOGO_SRC = '/assets/aistudio/malik-and-co_c952fd35.png';
+const ABOUT_US_PHOTO = '/assets/aistudio/WhatsApp_Image_2026-10-25_at_11.07.39_AM__1__70df3863.jpeg';
 
 interface QuoteFormState {
   fullName: string;
@@ -42,91 +39,14 @@ interface QuoteFormState {
   email: string;
   city: string;
   scope: string;
+  plotArea: string;
   siteDetails: string;
 }
-
-const FLEET_INVENTORY = [
-  {
-    unit: 'Hydraulic Tracked Excavators (20T–35T)',
-    qty: '18 Units',
-    spec: 'Deep Trench & Rock Work',
-  },
-  {
-    unit: 'Mobile Concrete Batching Plants',
-    qty: '04 Plants',
-    spec: '90–120 m³/hr Combined',
-  },
-  {
-    unit: 'Tower Cranes & Transit Mixers',
-    qty: '14 Units',
-    spec: 'High-Rise Vertical Pour',
-  },
-  {
-    unit: 'Motor Graders, Rollers & Asphalt Pavers',
-    qty: '12 Units',
-    spec: 'NHA Highway Spec',
-  },
-];
-
-const EXPLORE_CARDS: {
-  id: string;
-  targetSection: string;
-  title: string;
-  subtitle: string;
-  summary: string;
-  action: string;
-  motif: SkylineMotifType;
-}[] = [
-  {
-    id: 'explore-divisions',
-    targetSection: 'capabilities',
-    title: 'Tall Towers & Short Civic Blocks',
-    subtitle: 'Engineering Divisions',
-    summary:
-      'Multi-storey seismic RCC towers alongside low-rise institutional halls, self-performed with 48 owned heavy machines.',
-    action: 'View Capabilities',
-    motif: 'tall_short',
-  },
-  {
-    id: 'explore-bridges',
-    targetSection: 'projects',
-    title: 'Pedestal Bridges & Civil Culverts',
-    subtitle: 'Delivered Portfolio',
-    summary:
-      'Elevated pedestrian pedestal bridges, flyovers, and storm culverts delivered across Karachi and Sialkot.',
-    action: 'View Projects',
-    motif: 'pedestal_bridge',
-  },
-  {
-    id: 'explore-shops',
-    targetSection: 'field-gallery',
-    title: 'Commercial Shops & Retail Plazas',
-    subtitle: 'Active Site Archive',
-    summary:
-      'Street-facing retail arcades, multi-bay shopfronts, and market-corridor drainage lines built without halting local trade.',
-    action: 'See Field Photos',
-    motif: 'shops',
-  },
-  {
-    id: 'explore-planning',
-    targetSection: 'estimator',
-    title: 'Mixed-Scale Urban Planning & BOQ',
-    subtitle: 'Cost Estimator',
-    summary:
-      'Estimate budgets in Marla, Kanal, Sq. Ft., or Running Ft. backed by 47 years of Pakistani site benchmarks.',
-    action: 'Open Estimator',
-    motif: 'mixed_district',
-  },
-];
 
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
-
-  const [selectedLayerId, setSelectedLayerId] = useState<string>('superstructure');
-  const [activeCategory, setActiveCategory] = useState<ProjectCategory>('all');
-  const [selectedCity, setSelectedCity] = useState<string>('All Cities');
-  const [activeProject, setActiveProject] = useState<LandmarkProject | null>(null);
+  const [voiceDeskOpen, setVoiceDeskOpen] = useState(false);
 
   const [formState, setFormState] = useState<QuoteFormState>({
     fullName: '',
@@ -134,29 +54,30 @@ export default function App() {
     phone: '',
     email: '',
     city: 'Karachi',
-    scope: 'Turnkey Commercial',
+    scope: 'Construction',
+    plotArea: '',
     siteDetails: '',
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof QuoteFormState, string>>>({});
   const [submittedDocket, setSubmittedDocket] = useState<string | null>(null);
 
-  const selectedLayer = useMemo(
-    () => STRUCTURAL_LAYERS.find((l) => l.id === selectedLayerId) || STRUCTURAL_LAYERS[0],
-    [selectedLayerId]
-  );
+  // Dynamically sync canonical and social card URLs to active origin
+  useEffect(() => {
+    const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
+    const shareImageUrl = `${window.location.origin}/assets/aistudio/WhatsApp_Image_2026-11-19_at_6.12.31_AM_a9571b33.jpeg`;
 
-  const cities = useMemo(
-    () => ['All Cities', ...Array.from(new Set(LANDMARK_PROJECTS.map((p) => p.city)))],
-    []
-  );
+    const canonicalEl = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (canonicalEl) canonicalEl.href = canonicalUrl;
 
-  const filteredProjects = useMemo(() => {
-    return LANDMARK_PROJECTS.filter((p) => {
-      const catMatch = activeCategory === 'all' || p.category === activeCategory;
-      const cityMatch = selectedCity === 'All Cities' || p.city === selectedCity;
-      return catMatch && cityMatch;
-    });
-  }, [activeCategory, selectedCity]);
+    const ogUrl = document.querySelector<HTMLMetaElement>('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = canonicalUrl;
+
+    const ogImg = document.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    if (ogImg) ogImg.content = shareImageUrl;
+
+    const twImg = document.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
+    if (twImg) twImg.content = shareImageUrl;
+  }, []);
 
   const scrollToSection = (id: string) => {
     setMobileMenuOpen(false);
@@ -164,29 +85,6 @@ export default function App() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleTransferFromEstimator = (payload: EstimatorTransferPayload) => {
-    setFormState((prev) => ({
-      ...prev,
-      city: payload.city,
-      scope: payload.projectType,
-      siteDetails: `Estimated Scope: ${payload.areaSummary} · Indicative Budget: ${payload.estimatedBudgetPkr}`,
-    }));
-    setSubmittedDocket(null);
-    scrollToSection('contact');
-  };
-
-  const handleRequestSimilarProject = (project: LandmarkProject) => {
-    setActiveProject(null);
-    setFormState((prev) => ({
-      ...prev,
-      city: project.city,
-      scope: project.categoryLabel,
-      siteDetails: `Reference Project: ${project.title} (${project.scaleMetric}, ${project.pecGrade})`,
-    }));
-    setSubmittedDocket(null);
-    scrollToSection('contact');
   };
 
   const validateAndSubmit = (e: React.FormEvent) => {
@@ -198,20 +96,20 @@ export default function App() {
     }
     const cleanPhone = formState.phone.replace(/[\s()-]/g, '');
     if (!/^(\+?92|0)?3\d{9}$|^\+?\d{10,14}$/.test(cleanPhone)) {
-      errors.phone = 'Enter a valid Pakistani mobile or landline number (e.g. 0300 1234567).';
+      errors.phone = 'Enter a valid mobile or landline number (e.g. 0334 2199979).';
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formState.email.trim())) {
-      errors.email = 'Enter a valid business or personal email address.';
+      errors.email = 'Enter a valid email address.';
     }
     if (formState.siteDetails.trim().length < 8) {
-      errors.siteDetails = 'Briefly specify plot dimensions, location, or tender scope.';
+      errors.siteDetails = 'Briefly describe your plot area, location, or project requirements.';
     }
 
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) return;
 
     const randomCode = Math.floor(1000 + Math.random() * 9000);
-    setSubmittedDocket(`MC-1979-${randomCode}`);
+    setSubmittedDocket(`MC-PLAN-${randomCode}`);
   };
 
   return (
@@ -242,7 +140,7 @@ export default function App() {
               href="#services"
               className="hover:text-[#0F4221] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
             >
-              Services
+              Disciplines
             </a>
             <a
               href="#field-gallery"
@@ -251,22 +149,16 @@ export default function App() {
               Site Photos
             </a>
             <a
-              href="#projects"
+              href="#specializations"
               className="hover:text-[#0F4221] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
             >
-              Projects
+              Specializations
             </a>
             <a
-              href="#capabilities"
+              href="#heritage"
               className="hover:text-[#0F4221] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
             >
-              Capabilities
-            </a>
-            <a
-              href="#estimator"
-              className="hover:text-[#0F4221] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
-            >
-              Estimator
+              Legacy
             </a>
           </nav>
 
@@ -294,11 +186,10 @@ export default function App() {
           <div className="md:hidden border-t border-[#DFE2DC] bg-white px-4 py-4 space-y-2">
             {[
               { label: '3D Blueprint', id: 'blueprint' },
-              { label: 'Services', id: 'services' },
+              { label: 'Disciplines', id: 'services' },
               { label: 'Site Photos', id: 'field-gallery' },
-              { label: 'Projects', id: 'projects' },
-              { label: 'Capabilities', id: 'capabilities' },
-              { label: 'Estimator', id: 'estimator' },
+              { label: 'Specializations', id: 'specializations' },
+              { label: 'Legacy & About Us', id: 'heritage' },
             ].map((item) => (
               <button
                 key={item.id}
@@ -337,43 +228,41 @@ export default function App() {
                       {!logoFailed ? (
                         <img
                           src={LOGO_SRC}
-                          alt="Malik & Co. official circular seal featuring excavator, high-rise buildings, and culvert pipe"
-                          referrerPolicy="no-referrer"
+                          alt="M/S Malik & Company official circular crest logo"
                           onError={() => setLogoFailed(true)}
                           className="w-full h-full object-contain rounded-full"
                         />
                       ) : (
                         <div className="w-full h-full rounded-full bg-[#0F4221] text-white flex flex-col items-center justify-center text-center p-1">
                           <Building2 className="w-6 h-6 text-[#F4B41A]" />
-                          <span className="text-[9px] font-bold tracking-wider mt-0.5">
-                            M&amp;C 1979
-                          </span>
+                          <span className="text-[9px] font-bold tracking-wider mt-0.5">M&amp;C</span>
                         </div>
                       )}
                     </div>
                     <div className="text-xs leading-relaxed text-[#344238]">
-                      <div className="font-semibold text-[#0F4221]">
-                        M/S Malik &amp; Company · Est. 1979
+                      <div className="font-semibold text-[#0F4221]">M/S Malik &amp; Company</div>
+                      <div className="font-medium text-[#1C2720]">
+                        {COMPANY_INFO.pecRegistration}
                       </div>
-                      <div>PEC Category C-A · Engineering Consultants</div>
-                      <div className="text-[#5A675D]">Karachi (Main) · Sialkot (Est. 1979)</div>
+                      <div className="text-[#5A675D]">{COMPANY_INFO.electricalLicense}</div>
                     </div>
                   </div>
 
                   <h1
                     className="mt-7 font-bold tracking-tight text-[#111914] leading-[1.06]"
                     style={{
-                      fontSize: 'clamp(2.25rem, 4vw, 3.5rem)',
+                      fontSize: 'clamp(2.15rem, 3.8vw, 3.35rem)',
                       textWrap: 'balance',
                     }}
                   >
-                    Civil Infrastructure, Pipelines &amp; Commercial Builds Since 1979.
+                    One-Window Engineering, Design &amp; Construction.
                   </h1>
 
-                  <p className="mt-5 text-base sm:text-[17px] text-[#344238] leading-relaxed max-w-[54ch]">
-                    From trunk sewerage lines, pumping stations, and pedestal bridges to street-level
-                    shops and reinforced concrete towers, Malik &amp; Co. executes ground-up civil
-                    works across Pakistan with an owned heavy fleet.
+                  <p className="mt-5 text-sm sm:text-base text-[#344238] leading-relaxed max-w-[56ch]">
+                    Built on a five-generation family legacy dating back to the 1930s, M/S Malik
+                    &amp; Company delivers integrated services across Interior Designers,
+                    Construction, Engineers, Architecture, Structural, Planners Developers, MEP
+                    Design, Infrastructure Consultancy, Renovation Works, and Demolish Works.
                   </p>
                 </div>
 
@@ -384,7 +273,7 @@ export default function App() {
                       onClick={() => scrollToSection('contact')}
                       className="extrude-btn inline-flex items-center gap-2.5 rounded-lg bg-[#0F4221] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#0A2E17] cursor-pointer whitespace-nowrap"
                     >
-                      <span>Schedule Site Consultation</span>
+                      <span>Schedule Consultation</span>
                       <ArrowRight className="w-4 h-4 text-[#F4B41A]" aria-hidden="true" />
                     </button>
 
@@ -399,17 +288,15 @@ export default function App() {
                   </div>
 
                   <p className="text-xs text-[#5A675D]">
-                    Serving municipal boards, industrial estates, and private commercial developers.
+                    Serving government &amp; private sector clients across Pakistan, preparing for
+                    international expansion.
                   </p>
                 </div>
               </div>
 
               {/* Right Column: Interactive 2D Isometric 3D-Illusion Structural Stage */}
               <div id="blueprint" className="lg:col-span-7 flex flex-col justify-center">
-                <IsometricHeroDiorama
-                  selectedLayerId={selectedLayerId}
-                  onSelectLayer={setSelectedLayerId}
-                />
+                <IsometricHeroDiorama />
               </div>
             </div>
 
@@ -417,34 +304,34 @@ export default function App() {
             <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-[#DFE2DC] pt-8">
               <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
                 <div className="text-2xl sm:text-3xl font-bold font-mono-tabular text-[#0F4221]">
-                  1979
+                  1930s
                 </div>
                 <div className="mt-1 text-xs font-medium text-[#4B584E]">
-                  47 Years of Continuous Field Delivery
+                  Five Generations of Construction Craftsmanship
                 </div>
               </div>
               <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
                 <div className="text-2xl sm:text-3xl font-bold font-mono-tabular text-[#0F4221]">
-                  PEC C-A
+                  10
                 </div>
                 <div className="mt-1 text-xs font-medium text-[#4B584E]">
-                  Highest No-Limit Engineering License
+                  Integrated Design, Engineering, Renovation &amp; Demolish Disciplines
                 </div>
               </div>
               <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
                 <div className="text-2xl sm:text-3xl font-bold font-mono-tabular text-[#0F4221]">
-                  420+
+                  2,000+
                 </div>
                 <div className="mt-1 text-xs font-medium text-[#4B584E]">
-                  Pipelines, Pumping Stations, Shops &amp; Towers
+                  Delivered Buildings, Interiors, Bridges &amp; Infrastructure Works
                 </div>
               </div>
               <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
                 <div className="text-2xl sm:text-3xl font-bold font-mono-tabular text-[#0F4221]">
-                  48 Units
+                  PEC C-B
                 </div>
                 <div className="mt-1 text-xs font-medium text-[#4B584E]">
-                  Owned Excavators, Loaders &amp; Batching Plants
+                  One-Window Solution Provider · License No. KC-1341
                 </div>
               </div>
             </div>
@@ -452,54 +339,20 @@ export default function App() {
         </section>
 
         {/* =================================================================== */}
-        {/* 2. INTERACTIVE 2D STRUCTURAL LAYER INSPECTOR                        */}
-        {/* =================================================================== */}
-        <section className="border-b border-[#DFE2DC] bg-white py-12 lg:py-16">
-          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              <div className="lg:col-span-5">
-                <p className="text-xs font-semibold text-[#0F4221]">
-                  Selected Layer · {selectedLayer.elevation}
-                </p>
-                <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#111914]">
-                  {selectedLayer.name}
-                </h2>
-                <p className="mt-1.5 text-xs text-[#5A675D]">{selectedLayer.spec}</p>
-                <p className="mt-4 text-sm sm:text-base text-[#344238] leading-relaxed">
-                  {selectedLayer.summary}
-                </p>
-              </div>
-
-              <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {selectedLayer.highlights.map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-xl border border-[#DFE2DC] bg-[#F8F7F4] p-5 flex items-start gap-2.5"
-                  >
-                    <CheckCircle2 className="w-4 h-4 text-[#0F4221] shrink-0 mt-0.5" />
-                    <p className="text-sm font-medium text-[#1C2720] leading-snug">{item}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================================== */}
-        {/* 3. ALL ENGINEERING CONSULTANTS & CONSTRUCTION SERVICES              */}
+        {/* 2. ONE-WINDOW DISCIPLINES & INTERIOR DESIGN STUDIO                  */}
         {/* =================================================================== */}
         <section id="services" className="arch-isometric-grid border-b border-[#DFE2DC] py-14 lg:py-18">
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
               <div className="max-w-3xl">
                 <p className="text-xs font-semibold text-[#0F4221]">
-                  M/S Malik &amp; Company · Foundations for the Future
+                  M/S Malik &amp; Company · One-Window Solution Provider
                 </p>
                 <h2
                   className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
                   style={{ textWrap: 'balance' }}
                 >
-                  Engineering Consultants &amp; Construction Services
+                  Core Engineering, Design, Renovation &amp; Construction Disciplines
                 </h2>
                 <p className="mt-2.5 text-sm sm:text-base text-[#344238]">
                   {PRACTICE_DISCIPLINES.join(' · ')}
@@ -510,7 +363,7 @@ export default function App() {
               </span>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {ALL_SERVICES.map((service) => (
                 <button
                   key={service.id}
@@ -518,13 +371,14 @@ export default function App() {
                   onClick={() => {
                     setFormState((prev) => ({
                       ...prev,
-                      siteDetails: `Service Inquiry: ${service.title} (${service.discipline})`,
+                      scope: service.title,
+                      siteDetails: `Discipline Inquiry: ${service.title} (${service.discipline})`,
                     }));
                     scrollToSection('contact');
                   }}
                   className="text-left rounded-xl border border-[#DCE0D7] bg-white p-4 hover:border-[#0F4221] transition-colors flex flex-col justify-between gap-3 cursor-pointer"
                 >
-                  <div className="flex items-start gap-3.5">
+                  <div className="space-y-2.5">
                     <ServiceIsoIcon id={service.id} />
                     <div className="min-w-0">
                       <div className="text-[11px] font-medium text-[#5A675D]">
@@ -539,351 +393,144 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+            <InteriorDesignShowcase
+              onRequestConsultation={(focusLabel) => {
+                setFormState((prev) => ({
+                  ...prev,
+                  scope: 'Interior Designers',
+                  siteDetails: focusLabel,
+                }));
+                scrollToSection('contact');
+              }}
+            />
           </div>
         </section>
 
         {/* =================================================================== */}
-        {/* 4. REAL ON-SITE PROJECT PHOTOGRAPHS (ALL 9 UPLOADED FIELD PHOTOS)   */}
+        {/* 3. REAL ON-SITE PROJECT PHOTOGRAPHS (ALL 9 UPLOADED FIELD PHOTOS)   */}
         {/* =================================================================== */}
         <FieldGallerySection />
 
         {/* =================================================================== */}
-        {/* 4. EXPLORE MALIK & CO.: TALL, SHORT, SHOPS & PEDESTAL BRIDGES       */}
+        {/* 4. ARCHITECTURAL SKYLINES: TALL, SHORT, SHOPS & PEDESTAL BRIDGES    */}
         {/* =================================================================== */}
         <section className="arch-grid-bg border-b border-[#DFE2DC] py-16 lg:py-20">
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <p className="text-xs font-semibold text-[#0F4221]">Explore Malik &amp; Co.</p>
+              <p className="text-xs font-semibold text-[#0F4221]">
+                Architecture, Structural &amp; Infrastructure Scale
+              </p>
               <h2
                 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
                 style={{ textWrap: 'balance' }}
               >
-                Engineering Divisions, Portfolio &amp; Planning Tools
+                Tall Towers, Civic Blocks, Commercial Shops &amp; Pedestal Bridges
               </h2>
               <p className="mt-3 text-sm sm:text-base text-[#344238] leading-relaxed">
-                From tall corporate towers and low-rise civic blocks to street-level retail shops
-                and elevated pedestal bridges across Pakistan’s urban corridors.
+                From multi-storey corporate towers and low-rise civic blocks to street-level
+                retail shops and elevated pedestal bridges across Karachi and Sialkot.
               </p>
             </div>
 
             <div className="mt-8">
               <UrbanSkylinePanorama />
             </div>
-
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {EXPLORE_CARDS.map((card) => (
-                <button
-                  key={card.id}
-                  type="button"
-                  onClick={() => scrollToSection(card.targetSection)}
-                  className="w-full h-full text-left rounded-2xl border border-[#D4D9CF] bg-white p-5 extrude-card flex flex-col justify-between gap-4 cursor-pointer"
-                >
-                  <div>
-                    <div className="text-xs font-medium text-[#5A675D]">{card.subtitle}</div>
-                    <div className="mt-2.5 rounded-xl border border-[#E5E8E1] bg-[#F8F7F4] p-2">
-                      <UrbanCardGraphic type={card.motif} />
-                    </div>
-                    <h3 className="mt-4 text-lg font-bold text-[#111914] leading-snug">
-                      {card.title}
-                    </h3>
-                    <p className="mt-2 text-sm text-[#344238] leading-relaxed">{card.summary}</p>
-                  </div>
-
-                  <div className="border-t border-[#E5E8E1] pt-3.5 flex items-center justify-between text-xs font-semibold text-[#0F4221]">
-                    <span>{card.action}</span>
-                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                  </div>
-                </button>
-              ))}
-            </div>
           </div>
         </section>
 
         {/* =================================================================== */}
-        {/* 5. LANDMARK PAKISTANI PROJECTS (WITH REAL PHOTOGRAPHS) & PROOF      */}
-        {/* =================================================================== */}
-        <section id="projects" className="border-b border-[#DFE2DC] bg-white py-16 lg:py-20">
-          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-              <div>
-                <p className="text-xs font-semibold text-[#0F4221]">Delivered Across Pakistan</p>
-                <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]">
-                  Selected Civil &amp; Structural Case Studies
-                </h2>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <div
-                  role="tablist"
-                  aria-label="Filter projects by engineering sector"
-                  className="flex flex-wrap items-center gap-1 p-1 rounded-xl bg-[#F2F3EE] border border-[#DFE2DC]"
-                >
-                  {(
-                    [
-                      { id: 'all', label: 'All Sectors' },
-                      { id: 'civil', label: 'Civil & Culverts' },
-                      { id: 'highrise', label: 'High-Rise' },
-                      { id: 'highways', label: 'Highways' },
-                      { id: 'industrial', label: 'Pumping & Industrial' },
-                    ] as { id: ProjectCategory; label: string }[]
-                  ).map((tab) => {
-                    const active = activeCategory === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={active}
-                        onClick={() => setActiveCategory(tab.id)}
-                        className={`px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                          active
-                            ? 'bg-[#0F4221] text-white'
-                            : 'text-[#344238] hover:text-[#111914] hover:bg-white/70'
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <select
-                  aria-label="Filter projects by city"
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="rounded-xl border border-[#DFE2DC] bg-[#F8F7F4] px-3.5 py-2.5 text-xs font-semibold text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
-                >
-                  {cities.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-10">
-              {filteredProjects.length === 0 ? (
-                <div className="rounded-2xl border border-[#DFE2DC] bg-[#F8F7F4] p-10 text-center space-y-3">
-                  <p className="text-base font-semibold text-[#111914]">
-                    No projects match this sector and city combination.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveCategory('all');
-                      setSelectedCity('All Cities');
-                    }}
-                    className="rounded-lg bg-[#0F4221] px-4 py-2 text-xs font-semibold text-white cursor-pointer"
-                  >
-                    Reset Project Filters
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProjects.map((project) => (
-                    <button
-                      key={project.id}
-                      type="button"
-                      onClick={() => setActiveProject(project)}
-                      className="w-full h-full text-left rounded-2xl border border-[#D4D9CF] bg-[#F8F7F4] overflow-hidden extrude-card flex flex-col justify-between cursor-pointer"
-                    >
-                      <div>
-                        <div className="h-52 w-full overflow-hidden bg-[#E5E8E0] border-b border-[#DFE2DC]">
-                          <img
-                            src={project.imageSrc}
-                            alt={project.imageAlt}
-                            referrerPolicy="no-referrer"
-                            className={`w-full h-full object-cover ${
-                              project.imageFocus === 'top' ? 'object-top' : 'object-center'
-                            }`}
-                          />
-                        </div>
-
-                        <div className="p-6 pb-4">
-                          <div className="flex items-center justify-between gap-2 text-xs text-[#4B584E]">
-                            <span>
-                              {project.city} · {project.categoryLabel}
-                            </span>
-                            <span className="font-mono-tabular">{project.year}</span>
-                          </div>
-
-                          <h3 className="mt-2 text-xl font-bold text-[#111914] leading-snug">
-                            {project.title}
-                          </h3>
-
-                          <p className="mt-3 text-sm text-[#344238] leading-relaxed">
-                            {project.summary}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="px-6 py-4 border-t border-[#DFE2DC] flex items-center justify-between gap-3 text-xs">
-                        <div className="font-mono-tabular">
-                          <span className="font-bold text-[#0F4221]">{project.valuePkr}</span>
-                          <span aria-hidden="true" className="mx-1.5 text-[#9AA598]">
-                            ·
-                          </span>
-                          <span className="text-[#4B584E]">{project.concreteVolume}</span>
-                        </div>
-                        <span className="inline-flex items-center gap-1 font-semibold text-[#0F4221] shrink-0">
-                          <span>Details</span>
-                          <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Client Endorsements */}
-            <div className="mt-14 border-t border-[#DFE2DC] pt-12">
-              <div className="text-xs font-semibold text-[#0F4221]">
-                Consultant &amp; Client Verification
-              </div>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                {TESTIMONIALS.map((t) => (
-                  <blockquote
-                    key={t.author}
-                    className="rounded-2xl border border-[#DFE2DC] bg-[#F8F7F4] p-6 flex flex-col justify-between gap-5"
-                  >
-                    <p className="text-sm text-[#263029] leading-relaxed">“{t.quote}”</p>
-                    <footer className="border-t border-[#DFE2DC] pt-4 text-xs">
-                      <div className="font-bold text-[#111914]">{t.author}</div>
-                      <div className="text-[#4B584E] mt-0.5">
-                        {t.role} · {t.organization}
-                      </div>
-                      <div className="mt-1 text-[#0F4221] font-medium">
-                        Project: {t.projectRef}
-                      </div>
-                    </footer>
-                  </blockquote>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================================== */}
-        {/* 6. CORE CAPABILITIES & OWNED HEAVY EQUIPMENT FLEET                  */}
+        {/* 5. SPECIALIZATIONS OF M/S MALIK & CO + TOOLS & ALLIANCES            */}
         {/* =================================================================== */}
         <section
-          id="capabilities"
+          id="specializations"
           className="arch-isometric-grid border-b border-[#DFE2DC] py-16 lg:py-20"
         >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="text-xs font-semibold text-[#0F4221]">Engineering Divisions</p>
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold text-[#0F4221]">
+                Specializations of M/S Malik &amp; Company
+              </p>
               <h2
                 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
                 style={{ textWrap: 'balance' }}
               >
-                Four Core Disciplines Executed Under Single-Point Accountability.
+                Ten Disciplines Across Design, Engineering, Renovation &amp; Demolition
               </h2>
+              <p className="mt-2.5 text-sm sm:text-base text-[#344238]">
+                Detailed deliverables across Interior Designers, Construction, Engineers,
+                Architecture, Structural, Planners Developers, MEP Design, Infrastructure
+                Consultancy, Renovation Works, and Demolish Works.
+              </p>
             </div>
 
-            <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {CAPABILITIES.map((cap) => {
-                const isWide = cap.span === 'wide';
-                return (
-                  <article
-                    key={cap.id}
-                    className={`rounded-2xl border border-[#D4D9CF] bg-white p-6 sm:p-7 extrude-card flex flex-col justify-between gap-6 ${
-                      isWide ? 'lg:col-span-2' : 'lg:col-span-1'
-                    }`}
-                  >
-                    <div
-                      className={`grid gap-6 items-center ${
-                        isWide ? 'grid-cols-1 md:grid-cols-12' : 'grid-cols-1'
-                      }`}
-                    >
-                      <div className={isWide ? 'md:col-span-7' : ''}>
-                        <div className="text-xs font-medium text-[#5A675D]">{cap.kicker}</div>
-                        <h3 className="mt-2 text-xl sm:text-2xl font-bold text-[#111914]">
-                          {cap.title}
-                        </h3>
-                        <p className="mt-3 text-sm sm:text-[15px] text-[#344238] leading-relaxed">
-                          {cap.description}
-                        </p>
-                      </div>
-
-                      <div
-                        className={`${
-                          isWide ? 'md:col-span-5' : ''
-                        } rounded-xl border border-[#E5E8E1] bg-[#F8F7F4] p-3`}
-                      >
-                        <IsometricCapabilityArt type={cap.artType} compact={!isWide} />
-                      </div>
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {SPECIALIZATIONS.map((spec) => (
+                <article
+                  key={spec.id}
+                  className="rounded-2xl border border-[#D4D9CF] bg-white p-6 sm:p-7 extrude-card flex flex-col justify-between gap-5"
+                >
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-mono-tabular text-[#5A675D]">
+                      <span>{spec.kicker}</span>
+                      <span className="font-bold text-[#0F4221]">{spec.number}</span>
                     </div>
-
-                    <div className="border-t border-[#E5E8E1] pt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-[#0F4221]">
-                      {cap.metrics.map((metric, i) => (
-                        <React.Fragment key={metric}>
-                          <span>{metric}</span>
-                          {i < cap.metrics.length - 1 && (
-                            <span aria-hidden="true" className="text-[#9AA598]">
-                              ·
-                            </span>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            {/* Owned Fleet & QA Standards */}
-            <div className="mt-14 grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-7">
-                <p className="text-xs font-semibold text-[#0F4221]">In-House Mobilization</p>
-                <h3 className="mt-1.5 text-2xl font-bold text-[#111914]">
-                  Owned Equipment Fleet &amp; Batching Capacity
-                </h3>
-                <div className="mt-5 rounded-2xl border border-[#DFE2DC] overflow-x-auto bg-white">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#F2F3EE] text-xs uppercase text-[#344238]">
-                      <tr>
-                        <th className="px-4 py-3 font-semibold">Equipment Class</th>
-                        <th className="px-4 py-3 font-semibold">Fleet Size</th>
-                        <th className="px-4 py-3 font-semibold">Application</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E8E1]">
-                      {FLEET_INVENTORY.map((row) => (
-                        <tr key={row.unit}>
-                          <td className="px-4 py-3.5 font-medium text-[#111914]">{row.unit}</td>
-                          <td className="px-4 py-3.5 font-mono-tabular font-semibold text-[#0F4221]">
-                            {row.qty}
-                          </td>
-                          <td className="px-4 py-3.5 text-[#4B584E]">{row.spec}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="lg:col-span-5 rounded-2xl border border-[#CFD5CC] bg-[#0F4221] text-white p-6 sm:p-8 flex flex-col justify-between gap-6">
-                <div>
-                  <div className="text-xs font-semibold text-[#F4B41A]">
-                    ISO 9001:2015 &amp; ASTM Testing
+                    <h3 className="mt-2 text-xl font-bold text-[#111914] leading-snug">
+                      {spec.title}
+                    </h3>
+                    <p className="mt-2.5 text-sm text-[#344238] leading-relaxed">
+                      {spec.description}
+                    </p>
                   </div>
-                  <h3 className="mt-2 text-2xl font-bold">Site Quality Assurance Protocol</h3>
-                  <ul className="mt-5 space-y-3 text-sm text-[#D1E7D8]">
-                    {[
-                      '7-day & 28-day concrete cube compression testing on every pour',
-                      'ASTM A615 Grade-60 tensile & bend verification per steel batch',
-                      'Field Density Tests (FDT) verifying 98% MDD trench compaction',
-                      'Full-time HSE officers enforcing zero-LTI site safety standards',
-                    ].map((item) => (
-                      <li key={item} className="flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-[#F4B41A] shrink-0 mt-0.5" />
+
+                  <ul className="border-t border-[#E5E8E1] pt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-xs font-medium text-[#1C2720]">
+                    {spec.services.map((item) => (
+                      <li key={item} className="flex items-start gap-2">
+                        <CheckCircle2
+                          className="w-3.5 h-3.5 text-[#0F4221] shrink-0 mt-0.5"
+                          aria-hidden="true"
+                        />
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
+                </article>
+              ))}
+            </div>
+
+            {/* Tools, Machinery & Industry Alliances */}
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-[#DFE2DC] bg-white p-6 sm:p-8 flex flex-col justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#0F4221]">
+                    <Wrench className="w-4 h-4 text-[#D99B0C]" aria-hidden="true" />
+                    <span>Tools &amp; Machinery Availability</span>
+                  </div>
+                  <h3 className="mt-2 text-2xl font-bold text-[#111914]">
+                    Every Tool from Traditional to Modern Available
+                  </h3>
+                  <p className="mt-3 text-sm sm:text-[15px] text-[#344238] leading-relaxed">
+                    From time-tested hand and site-masonry tools to modern demolition breakers,
+                    renovation equipment, and surveying instruments, we maintain complete tooling
+                    availability to mobilize any site without delay.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#CFD5CC] bg-[#0F4221] text-white p-6 sm:p-8 flex flex-col justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#F4B41A]">
+                    <Handshake className="w-4 h-4" aria-hidden="true" />
+                    <span>Partner Network &amp; Outsourcing</span>
+                  </div>
+                  <h3 className="mt-2 text-2xl font-bold">
+                    Alliances Across Major &amp; Small Companies
+                  </h3>
+                  <p className="mt-3 text-sm sm:text-[15px] text-[#D1E7D8] leading-relaxed">
+                    Backed by established working alliances with both large engineering firms and
+                    specialized small contractors, we also arrange reliable specialized outsourcing
+                    whenever project scale, timeline, or technical scope requires it.
+                  </p>
                 </div>
               </div>
             </div>
@@ -891,216 +538,210 @@ export default function App() {
         </section>
 
         {/* =================================================================== */}
-        {/* 7. INTERACTIVE 1979–2026 HERITAGE DEPTH STACK & COVERAGE            */}
+        {/* 6. ABOUT US (WITH CRISP ARCHIVAL PHOTO) & 5-GENERATION TIMELINE     */}
         {/* =================================================================== */}
         <section id="heritage" className="arch-grid-bg border-b border-[#DFE2DC] py-16 lg:py-20">
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-10">
-              <p className="text-xs font-semibold text-[#0F4221]">
-                Institutional Legacy · 1979–2026
-              </p>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]">
-                Four Decades of Ground Engineering Across Pakistan
-              </h2>
-              <p className="mt-3 text-sm sm:text-base text-[#344238]">
-                Step through our company milestones from 1979 municipal drainage and culvert works to
-                modern high-rise and pumping facilities.
-              </p>
-            </div>
-
-            <HeritageDepthDeck />
-
-            <div className="mt-14 border-t border-[#DFE2DC] pt-12">
-              <div className="text-xs font-semibold text-[#0F4221]">
-                Regional Soil &amp; Seismic Engineering Coverage
-              </div>
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                {PAKISTAN_CITIES.map((city) => (
-                  <div
-                    key={city.name}
-                    className="rounded-2xl border border-[#DFE2DC] bg-white p-5 flex flex-col justify-between gap-3"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-[#111914]">{city.name}</h3>
-                      <span className="text-xs font-mono-tabular font-semibold text-[#0F4221]">
-                        {city.seismicZone}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#344238] leading-relaxed">{city.soilNote}</p>
-                    <div className="pt-2 border-t border-[#E5E8E1] flex items-center gap-2 text-xs text-[#4B584E]">
-                      <ShieldCheck className="w-4 h-4 text-[#0F4221]" aria-hidden="true" />
-                      <span>Full mobilization &amp; site lab support</span>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center pb-14 border-b border-[#DFE2DC]">
+              <div className="lg:col-span-5">
+                <figure className="rounded-2xl border border-[#D4D9CF] bg-white overflow-hidden extrude-card">
+                  <div className="h-64 sm:h-72 w-full overflow-hidden bg-[#E5E8E0] border-b border-[#DFE2DC]">
+                    <img
+                      src={ABOUT_US_PHOTO}
+                      alt="Archival photograph of M/S Malik & Company leadership at an official civic handover"
+                      decoding="async"
+                      className="w-full h-full object-cover object-top"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================================== */}
-        {/* 8. PAKISTAN BOQ COST & TIMELINE ESTIMATOR                           */}
-        {/* =================================================================== */}
-        <section id="estimator" className="border-b border-[#DFE2DC] bg-white py-16 lg:py-20">
-          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl mb-10">
-              <p className="text-xs font-semibold text-[#0F4221]">Budget &amp; Material Planning</p>
-              <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]">
-                Estimate Your Project in Marla, Kanal, or Sq. Ft.
-              </h2>
-              <p className="mt-3 text-sm sm:text-base text-[#344238]">
-                Calibrated to current Pakistani Grade-60 steel, OPC/SRC cement, and regional soil
-                conditions across major urban centers.
-              </p>
-            </div>
-
-            <CostEstimator onTransferToQuote={handleTransferFromEstimator} />
-
-            <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-5 rounded-2xl border border-[#DFE2DC] bg-[#F8F7F4] p-6">
-                <div className="text-xs font-semibold text-[#0F4221]">
-                  Pakistani Standard Plot Conversions
-                </div>
-                <dl className="mt-4 divide-y divide-[#E5E8E1] text-sm">
-                  <div className="py-3 flex items-center justify-between">
-                    <dt className="text-[#344238]">1 Marla (Standard Urban)</dt>
-                    <dd className="font-mono-tabular font-semibold text-[#111914]">225 sq. ft.</dd>
-                  </div>
-                  <div className="py-3 flex items-center justify-between">
-                    <dt className="text-[#344238]">10 Marla Plot Footprint</dt>
-                    <dd className="font-mono-tabular font-semibold text-[#111914]">2,250 sq. ft.</dd>
-                  </div>
-                  <div className="py-3 flex items-center justify-between">
-                    <dt className="text-[#344238]">1 Kanal (20 Marla)</dt>
-                    <dd className="font-mono-tabular font-semibold text-[#111914]">4,500 sq. ft.</dd>
-                  </div>
-                  <div className="py-3 flex items-center justify-between">
-                    <dt className="text-[#344238]">1 Acre (8 Kanal)</dt>
-                    <dd className="font-mono-tabular font-semibold text-[#111914]">36,000 sq. ft.</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="lg:col-span-7 rounded-2xl border border-[#DFE2DC] bg-[#F8F7F4] p-6">
-                <div className="text-xs font-semibold text-[#0F4221]">
-                  City Soil &amp; Seismic Cost Index
-                </div>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="text-xs uppercase text-[#5A675D] border-b border-[#E5E8E1]">
-                      <tr>
-                        <th className="pb-2.5 font-semibold">City</th>
-                        <th className="pb-2.5 font-semibold">Seismic</th>
-                        <th className="pb-2.5 font-semibold">Index</th>
-                        <th className="pb-2.5 font-semibold">Geotechnical Basis</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E8E1]">
-                      {PAKISTAN_CITIES.map((c) => (
-                        <tr key={c.name}>
-                          <td className="py-2.5 font-semibold text-[#111914]">{c.name}</td>
-                          <td className="py-2.5 font-mono-tabular text-xs text-[#0F4221]">
-                            {c.seismicZone}
-                          </td>
-                          <td className="py-2.5 font-mono-tabular text-xs font-semibold">
-                            {c.multiplier.toFixed(2)}×
-                          </td>
-                          <td className="py-2.5 text-xs text-[#4B584E]">{c.soilNote}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =================================================================== */}
-        {/* 9. TENDER & SITE CONSULTATION FORM                                  */}
-        {/* =================================================================== */}
-        <section id="contact" className="arch-isometric-grid py-16 lg:py-20">
-          <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-              <div className="lg:col-span-5 space-y-6">
-                <div>
-                  <p className="text-xs font-semibold text-[#0F4221]">
-                    Tendering &amp; Engineering Desk
-                  </p>
-                  <h2 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]">
-                    Submit Drawings, BOQs, or Site Coordinates.
-                  </h2>
-                  <p className="mt-3 text-sm sm:text-base text-[#344238] leading-relaxed">
-                    Our chief estimator and senior structural engineer review every commercial,
-                    industrial, and civil inquiry within 24 working hours.
-                  </p>
-                </div>
-
-                <div className="space-y-4 border-t border-[#DFE2DC] pt-6 text-sm">
-                  <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
-                    <div className="text-xs font-bold text-[#0F4221]">
-                      KARACHI MAIN HEADQUARTERS
+                  <figcaption className="p-4 sm:p-5 text-xs sm:text-sm text-[#344238] leading-relaxed bg-white">
+                    <div className="font-bold text-[#0F4221]">
+                      Five Generations of Craftsmanship &amp; Engineering
                     </div>
-                    <div className="mt-1 text-[#263029]">
-                      Suite 302, Clifton Commercial Block 5, Karachi
-                    </div>
-                    <div className="mt-1 font-mono-tabular text-xs text-[#5A675D]">
-                      www.malikasif.com · tenders@malikasif.com · +92 (21) 3583-9920
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-[#DFE2DC] bg-white p-4">
-                    <div className="text-xs font-bold text-[#0F4221]">
-                      SIALKOT FOUNDING OFFICE (EST. 1979)
-                    </div>
-                    <div className="mt-1 text-[#263029]">
-                      Engineering Block, Paris Road / Cantt Area, Sialkot
-                    </div>
-                    <div className="mt-1 font-mono-tabular text-xs text-[#5A675D]">
-                      1979 Founding Operations · Mon–Sat 09:00–18:00 PKT
-                    </div>
-                  </div>
-                </div>
+                    <p className="mt-1">
+                      From Late Malik Abdul Mehtab Din Sahib in Sialkot (1930s) and Respected Malik
+                      Abdul Salam Sahib establishing Malik &amp; Company in Karachi to Civil Engineer
+                      Muhammad Asif Malik leading our PEC (C-B) firm today.
+                    </p>
+                  </figcaption>
+                </figure>
               </div>
 
               <div className="lg:col-span-7">
-                <div className="rounded-2xl border border-[#CFD5CC] bg-white p-6 sm:p-8 extrude-card">
+                <p className="text-xs font-semibold text-[#0F4221]">
+                  About Us · Five-Generation Family Legacy
+                </p>
+                <h2
+                  className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
+                  style={{ textWrap: 'balance' }}
+                >
+                  A Legacy Built Over Generations
+                </h2>
+                <p className="mt-4 text-sm sm:text-base text-[#344238] leading-relaxed">
+                  {COMPANY_INFO.introParagraph}
+                </p>
+              </div>
+            </div>
+
+            {/* Interactive Animated Dotted Milestone Timeline */}
+            <div className="mt-14 mb-8 max-w-2xl">
+              <p className="text-xs font-semibold text-[#0F4221]">
+                Milestone Timeline · 1930s – Present
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-[#111914]">
+                Five Generations from Sialkot to Karachi &amp; Beyond
+              </h2>
+            </div>
+
+            <HeritageDepthDeck />
+          </div>
+        </section>
+
+        {/* =================================================================== */}
+        {/* 7. UNIFIED CUSTOM PROJECT PLAN & DIRECT CONSULTATION DESK           */}
+        {/* =================================================================== */}
+        <section id="contact" className="bg-white py-16 lg:py-20">
+          <div id="estimator" className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              {/* Left Column: Direct Office Credentials & Custom Plan Proposal */}
+              <div className="lg:col-span-5 space-y-6">
+                <div>
+                  <p className="text-xs font-semibold text-[#0F4221]">
+                    Direct Office &amp; Custom Planning Desk · PEC Category C-B
+                  </p>
+                  <h2
+                    className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-[#111914]"
+                    style={{ textWrap: 'balance' }}
+                  >
+                    Connect with M/S Malik &amp; Company
+                  </h2>
+                  <p className="mt-3 text-sm sm:text-base text-[#344238] leading-relaxed">
+                    Every project is prepared in a custom plan tailored to your plot area and
+                    selected discipline — Interior Designers, Construction, Engineers,
+                    Architecture, Structural, Planners Developers, MEP Design, Infrastructure
+                    Consultancy, Renovation Works, or Demolish Works.
+                  </p>
+                </div>
+
+                {/* Karachi Headquarters Card */}
+                <div className="rounded-xl border border-[#DFE2DC] bg-[#F8F7F4] p-5 space-y-3 text-sm">
+                  <div className="text-xs font-bold text-[#0F4221] tracking-wide">
+                    KARACHI MAIN OFFICE
+                  </div>
+                  <address className="not-italic text-[#263029] leading-relaxed">
+                    <div className="font-semibold">Malik &amp; Co.</div>
+                    {COMPANY_INFO.addressLines.map((line) => (
+                      <div key={line}>{line}</div>
+                    ))}
+                  </address>
+
+                  <div className="pt-3 border-t border-[#E5E8E1] space-y-2 text-xs sm:text-sm">
+                    <a
+                      href={`tel:${COMPANY_INFO.cell.replace(/[^0-9+]/g, '')}`}
+                      className="flex items-center gap-2 font-mono-tabular font-semibold text-[#0F4221] hover:underline"
+                    >
+                      <Phone className="w-4 h-4 text-[#D99B0C]" aria-hidden="true" />
+                      <span>Cell: {COMPANY_INFO.cell}</span>
+                    </a>
+                    <a
+                      href={`mailto:${COMPANY_INFO.email}`}
+                      className="flex items-center gap-2 font-medium text-[#263029] hover:text-[#0F4221] hover:underline"
+                    >
+                      <Mail className="w-4 h-4 text-[#D99B0C]" aria-hidden="true" />
+                      <span>{COMPANY_INFO.email}</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Tailored Engineering Proposal Summary */}
+                <div className="rounded-xl border border-[#CFD5CC] bg-[#0F4221] text-white p-5 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#F4B41A]">
+                      Tailored Engineering Proposal
+                    </span>
+                    <ClipboardList className="w-4 h-4 text-[#F4B41A] shrink-0" aria-hidden="true" />
+                  </div>
+                  <div className="text-lg font-bold">Custom Plan &amp; BOQ</div>
+                  <div className="space-y-2 text-xs text-[#D1E7D8]">
+                    {[
+                      'One-window Interior Designers, Construction, Engineers, Architecture & Structural',
+                      'Planners Developers, MEP Design, Infrastructure Consultancy, Renovation & Demolish Works',
+                      COMPANY_INFO.pecRegistration,
+                      COMPANY_INFO.electricalLicense,
+                    ].map((item) => (
+                      <div key={item} className="flex items-start gap-2">
+                        <CheckCircle2
+                          className="w-3.5 h-3.5 text-[#F4B41A] shrink-0 mt-0.5"
+                          aria-hidden="true"
+                        />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Multilingual Voice Consultation Desk Launcher */}
+                <div className="rounded-xl border border-[#DFE2DC] bg-[#F8F7F4] p-5 space-y-3">
+                  <div className="text-xs font-semibold text-[#0F4221]">
+                    Multilingual Voice Desk · English · اردو · العربية · ਪੰਜਾਬੀ · سنڌي
+                  </div>
+                  <div className="text-base font-bold text-[#111914]">
+                    Speak with Our Engineering Desk
+                  </div>
+                  <p className="text-xs text-[#344238] leading-relaxed">
+                    Ask voice questions about CEO Engr. Muhammad Asif Malik, our five-generation
+                    legacy, PEC Category C-B credentials, or any of our ten disciplines.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceDeskOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#0F4221] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#0A2E17] transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <Mic className="w-3.5 h-3.5 text-[#F4B41A]" aria-hidden="true" />
+                    <span>Open Voice Consultation</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Column: Unified Custom Plan & Consultation Request Form */}
+              <div className="lg:col-span-7">
+                <div className="rounded-2xl border border-[#CFD5CC] bg-[#F8F7F4] p-6 sm:p-8 extrude-card">
                   {submittedDocket ? (
                     <div className="py-8 text-center space-y-4">
                       <div className="mx-auto w-12 h-12 rounded-full bg-[#0F4221] text-[#F4B41A] flex items-center justify-center">
                         <CheckCircle2 className="w-6 h-6" />
                       </div>
                       <div className="text-xs font-mono-tabular uppercase tracking-wider text-[#0F4221] font-bold">
-                        Tender Inquiry Registered · {submittedDocket}
+                        Custom Plan Inquiry Registered · {submittedDocket}
                       </div>
                       <h3 className="text-2xl font-bold text-[#111914]">
                         Thank you, {formState.fullName}.
                       </h3>
                       <p className="mx-auto max-w-md text-sm text-[#344238] leading-relaxed">
-                        Your project brief for <strong>{formState.city}</strong> (
-                        {formState.scope}) has been assigned to our regional engineering desk. We
-                        will contact you at <strong>{formState.phone}</strong>.
+                        Your custom plan request for <strong>{formState.city}</strong> (
+                        {formState.scope}) has been logged. Our Karachi desk will follow up at{' '}
+                        <strong>{formState.phone}</strong> or you can call us directly at{' '}
+                        <strong>{COMPANY_INFO.cell}</strong>.
                       </p>
                       <button
                         type="button"
                         onClick={() => {
                           setSubmittedDocket(null);
-                          setFormState((prev) => ({ ...prev, siteDetails: '' }));
+                          setFormState((prev) => ({ ...prev, plotArea: '', siteDetails: '' }));
                         }}
                         className="mt-2 inline-flex items-center justify-center rounded-lg border border-[#0F4221] px-5 py-2.5 text-xs font-semibold text-[#0F4221] hover:bg-[#0F4221] hover:text-white transition-colors cursor-pointer"
                       >
-                        Submit Another Inquiry
+                        Submit Another Request
                       </button>
                     </div>
                   ) : (
                     <form onSubmit={validateAndSubmit} noValidate className="space-y-5">
-                      <div className="flex items-center justify-between border-b border-[#E5E8E1] pb-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#DFE2DC] pb-4">
                         <h3 className="text-xl font-bold text-[#111914]">
-                          Request Site Visit or Tender Bid
+                          Request Custom Plan &amp; Consultation
                         </h3>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0F4221]">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold font-mono-tabular text-[#0F4221]">
                           <Phone className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>Direct Desk</span>
+                          <span>{COMPANY_INFO.cell}</span>
                         </span>
                       </div>
 
@@ -1119,8 +760,8 @@ export default function App() {
                             onChange={(e) =>
                               setFormState({ ...formState, fullName: e.target.value })
                             }
-                            placeholder="Engr. Kamran Siddiqui"
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            placeholder="Your full name"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           />
                           {formErrors.fullName && (
                             <p className="mt-1 text-xs text-red-700">{formErrors.fullName}</p>
@@ -1132,7 +773,7 @@ export default function App() {
                             htmlFor="q-org"
                             className="block text-xs font-semibold text-[#344238] mb-1.5"
                           >
-                            Organization / Developer
+                            Organization / Client Name
                           </label>
                           <input
                             id="q-org"
@@ -1142,7 +783,7 @@ export default function App() {
                               setFormState({ ...formState, organization: e.target.value })
                             }
                             placeholder="Company or Private Client"
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           />
                         </div>
                       </div>
@@ -1160,8 +801,8 @@ export default function App() {
                             type="tel"
                             value={formState.phone}
                             onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                            placeholder="+92 300 8421979"
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm font-mono-tabular text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            placeholder="0334-2199979"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm font-mono-tabular text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           />
                           {formErrors.phone && (
                             <p className="mt-1 text-xs text-red-700">{formErrors.phone}</p>
@@ -1181,7 +822,7 @@ export default function App() {
                             value={formState.email}
                             onChange={(e) => setFormState({ ...formState, email: e.target.value })}
                             placeholder="name@company.pk"
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           />
                           {formErrors.email && (
                             <p className="mt-1 text-xs text-red-700">{formErrors.email}</p>
@@ -1189,26 +830,25 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label
                             htmlFor="q-city"
                             className="block text-xs font-semibold text-[#344238] mb-1.5"
                           >
-                            Site City
+                            Project Location
                           </label>
                           <select
                             id="q-city"
                             value={formState.city}
                             onChange={(e) => setFormState({ ...formState, city: e.target.value })}
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           >
-                            {PAKISTAN_CITIES.map((c) => (
-                              <option key={c.name} value={c.name}>
-                                {c.name}
+                            {SITE_CITY_OPTIONS.map((cityName) => (
+                              <option key={cityName} value={cityName}>
+                                {cityName}
                               </option>
                             ))}
-                            <option value="Other Pakistan City">Other Pakistan City</option>
                           </select>
                         </div>
 
@@ -1217,26 +857,39 @@ export default function App() {
                             htmlFor="q-scope"
                             className="block text-xs font-semibold text-[#344238] mb-1.5"
                           >
-                            Engineering Scope
+                            Discipline / Scope
                           </label>
                           <select
                             id="q-scope"
                             value={formState.scope}
                             onChange={(e) => setFormState({ ...formState, scope: e.target.value })}
-                            className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                           >
-                            <option value="Turnkey Commercial">Turnkey Commercial Tower</option>
-                            <option value="RCC Grey Structure">RCC Grey Structure</option>
-                            <option value="Civil & Culverts">
-                              Storm Culverts &amp; Trunk Sewerage
-                            </option>
-                            <option value="Highways & Bridges">
-                              Highways, Flyovers &amp; Pedestal Bridges
-                            </option>
-                            <option value="Pumping & Industrial">
-                              Pumping Stations &amp; Industrial Plants
-                            </option>
+                            {PRACTICE_DISCIPLINES.map((discipline) => (
+                              <option key={discipline} value={discipline}>
+                                {discipline}
+                              </option>
+                            ))}
                           </select>
+                        </div>
+
+                        <div>
+                          <label
+                            htmlFor="q-area"
+                            className="block text-xs font-semibold text-[#344238] mb-1.5"
+                          >
+                            Plot / Project Area
+                          </label>
+                          <input
+                            id="q-area"
+                            type="text"
+                            value={formState.plotArea}
+                            onChange={(e) =>
+                              setFormState({ ...formState, plotArea: e.target.value })
+                            }
+                            placeholder="e.g. 500 Sq. Yards, 4 Floors"
+                            className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                          />
                         </div>
                       </div>
 
@@ -1245,7 +898,7 @@ export default function App() {
                           htmlFor="q-details"
                           className="block text-xs font-semibold text-[#344238] mb-1.5"
                         >
-                          Plot Area, Location &amp; Target Start Date *
+                          Specific Requirements &amp; Site Brief *
                         </label>
                         <textarea
                           id="q-details"
@@ -1254,8 +907,8 @@ export default function App() {
                           onChange={(e) =>
                             setFormState({ ...formState, siteDetails: e.target.value })
                           }
-                          placeholder="e.g. 4 Kanal commercial plaza in Clifton Karachi or Paris Road Sialkot, B2+G+6, soil report available."
-                          className="w-full rounded-lg border border-[#CFD5CC] bg-[#F8F7F4] px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
+                          placeholder="Share your plot area, location, and scope across Interior Designers, Construction, Engineers, Architecture, Structural, Planners Developers, MEP Design, Infrastructure Consultancy, Renovation Works, or Demolish Works."
+                          className="w-full rounded-lg border border-[#CFD5CC] bg-white px-3.5 py-2.5 text-sm text-[#111914] focus:outline-none focus:ring-2 focus:ring-[#0F4221]"
                         />
                         {formErrors.siteDetails && (
                           <p className="mt-1 text-xs text-red-700">{formErrors.siteDetails}</p>
@@ -1266,7 +919,7 @@ export default function App() {
                         type="submit"
                         className="extrude-btn w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#0F4221] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#0A2E17] cursor-pointer whitespace-nowrap"
                       >
-                        <span>Submit Tender Consultation Request</span>
+                        <span>Request Custom Plan &amp; Consultation</span>
                         <ArrowRight className="w-4 h-4 text-[#F4B41A]" aria-hidden="true" />
                       </button>
                     </form>
@@ -1279,7 +932,7 @@ export default function App() {
       </main>
 
       {/* ===================================================================== */}
-      {/* QUIET FOOTER                                                          */}
+      {/* FOOTER WITH KARACHI & SIALKOT ICONS + CONTACT INFO                    */}
       {/* ===================================================================== */}
       <footer className="border-t border-[#DFE2DC] bg-[#0F4221] text-white">
         <div className="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8 py-12">
@@ -1288,16 +941,14 @@ export default function App() {
               {!logoFailed && (
                 <img
                   src={LOGO_SRC}
-                  alt="Malik & Co. 1979 Crest"
-                  referrerPolicy="no-referrer"
+                  alt="Malik & Co. Crest"
                   className="w-14 h-14 rounded-full bg-white p-0.5 object-contain shrink-0"
                 />
               )}
               <div>
-                <div className="text-xl font-bold font-display">Malik &amp; Co.</div>
+                <div className="text-xl font-bold font-display">M/S Malik &amp; Company</div>
                 <div className="text-xs text-[#BCE0C7] mt-0.5">
-                  Civil Engineering &amp; Construction · Est. 1979 · PEC Category C-A · ISO
-                  9001:2015
+                  PEC Category C-B · License No. KC-1341 · Five-Generation Legacy
                 </div>
               </div>
             </div>
@@ -1307,19 +958,16 @@ export default function App() {
                 3D Blueprint
               </a>
               <a href="#services" className="hover:text-white transition-colors">
-                Services
+                Disciplines
               </a>
               <a href="#field-gallery" className="hover:text-white transition-colors">
                 Site Photos
               </a>
-              <a href="#projects" className="hover:text-white transition-colors">
-                Projects
+              <a href="#specializations" className="hover:text-white transition-colors">
+                Specializations
               </a>
-              <a href="#capabilities" className="hover:text-white transition-colors">
-                Capabilities
-              </a>
-              <a href="#estimator" className="hover:text-white transition-colors">
-                Estimator
+              <a href="#heritage" className="hover:text-white transition-colors">
+                Legacy
               </a>
               <a href="#contact" className="hover:text-white transition-colors">
                 Contact
@@ -1327,17 +975,41 @@ export default function App() {
             </nav>
           </div>
 
-          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#BCE0C7]">
-            <span>© 1979–2026 M/S Malik &amp; Company · www.malikasif.com</span>
-            <span>Karachi (Main Office) · Sialkot (Est. 1979)</span>
+          <div className="mt-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-[#BCE0C7]">
+            <span>© 2026 M/S Malik &amp; Company · Shahrah-e-Faisal, Karachi</span>
+
+            <div className="flex flex-wrap items-center gap-5">
+              <span className="inline-flex items-center gap-1.5 text-white font-medium">
+                <MapPin className="w-3.5 h-3.5 text-[#F4B41A]" aria-hidden="true" />
+                <span>Karachi (Main Office)</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-white font-medium">
+                <Building2 className="w-3.5 h-3.5 text-[#F4B41A]" aria-hidden="true" />
+                <span>Sialkot (1930s Origin)</span>
+              </span>
+              <a
+                href="tel:03342199979"
+                className="inline-flex items-center gap-1.5 hover:text-white transition-colors font-mono-tabular"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#F4B41A]" aria-hidden="true" />
+                <span>0334-2199979</span>
+              </a>
+              <a
+                href="mailto:asif.maliknco@gmail.com"
+                className="inline-flex items-center gap-1.5 hover:text-white transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#F4B41A]" aria-hidden="true" />
+                <span>asif.maliknco@gmail.com</span>
+              </a>
+            </div>
           </div>
         </div>
       </footer>
 
-      <ProjectModal
-        project={activeProject}
-        onClose={() => setActiveProject(null)}
-        onRequestSimilar={handleRequestSimilarProject}
+      <ElevenLabsVoiceDesk
+        isOpen={voiceDeskOpen}
+        onOpenChange={setVoiceDeskOpen}
+        onNavigateToContact={() => scrollToSection('contact')}
       />
     </div>
   );
